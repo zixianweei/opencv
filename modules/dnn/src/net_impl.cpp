@@ -186,6 +186,17 @@ void Net::Impl::setUpNet(const std::vector<LayerPin>& blobsToKeep_)
             preferableBackend = DNN_BACKEND_OPENCV;
             preferableTarget = DNN_TARGET_CPU;
         }
+        
+        if (preferableBackend == DNN_BACKEND_METAL && !haveMetal())
+        {
+#ifdef HAVE_METAL
+            CV_LOG_WARNING(NULL, "unable to use Metal backend; switching to CPU");
+#else
+            CV_LOG_WARNING(NULL, "DNN module was not built with CUDA backend; switching to CPU");
+#endif
+            preferableBackend = DNN_BACKEND_OPENCV;
+            preferableTarget = DNN_TARGET_CPU;
+        }
 
         clear();
 
@@ -1572,6 +1583,7 @@ string Net::Impl::dump(bool forceAllocation) const
     case DNN_BACKEND_WEBNN: backend = "WEBNN/"; break;
     case DNN_BACKEND_TIMVX: backend = "TIMVX/"; break;
     case DNN_BACKEND_CANN: backend = "CANN/"; break;
+    case DNN_BACKEND_METAL: backend = "METAL/"; break;
         // don't use default:
     }
     out << "digraph G {\n";
@@ -1763,6 +1775,10 @@ string Net::Impl::dump(bool forceAllocation) const
         case DNN_TARGET_CPU_FP16:
             out << "CPU_FP16";
             colorId = 10;
+            break;
+        case DNN_TARGET_METAL:
+            out << "METAL";
+            colorId = 11;
             break;
             // don't use default:
         }

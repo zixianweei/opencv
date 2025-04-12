@@ -480,6 +480,10 @@ OCV_OPTION(WITH_FLATBUFFERS "Include Flatbuffers support (required by DNN/TFLite
 OCV_OPTION(WITH_ZLIB_NG "Use zlib-ng instead of zlib" OFF
   VISIBLE_IF TRUE
   VERIFY HAVE_ZLIB_NG)
+OCV_OPTION(WITH_METAL "Include Metal support" ON
+  VISIBLE_IF APPLE #(APPLE AND AARCH64)
+  VERIFY HAVE_METAL
+)
 
 # OpenCV build components
 # ===================================================
@@ -927,6 +931,10 @@ endif()
 
 if(WITH_ONNX)
   include(cmake/FindONNX.cmake)
+endif()
+
+if(WITH_METAL)
+  include(cmake/OpenCVDetectMetal.cmake)
 endif()
 
 # ----------------------------------------------------------------------------
@@ -1942,6 +1950,14 @@ if(WITH_CANN)
   if(HAVE_CANN)
     status("    Include path"     CANN_INCLUDE_DIRS THEN "${CANN_INCLUDE_DIRS}" ELSE "NO")
     status("    Link libraries:"  CANN_LIBRARIES    THEN "${CANN_LIBRARIES}"    ELSE "NO")
+  endif()
+endif()
+
+if(WITH_METAL OR HAVE_METAL)
+  status("")
+  status("  Metal:"    HAVE_METAL THEN "YES" ELSE "NO")
+  if(HAVE_METAL)
+    status("    Link libraries:"  METAL_LIBRARIES    THEN "${METAL_LIBRARIES}"    ELSE "NO")
   endif()
 endif()
 

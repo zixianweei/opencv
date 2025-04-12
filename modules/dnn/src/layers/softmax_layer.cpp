@@ -48,6 +48,7 @@
 #include "../ie_ngraph.hpp"
 #include "../op_webnn.hpp"
 #include "../op_cann.hpp"
+#include "../op_metal.hpp"
 
 #include <algorithm>
 #include <stdlib.h>
@@ -63,6 +64,10 @@ using namespace cv::dnn::ocl4dnn;
 #ifdef HAVE_CUDA
 #include "../cuda4dnn/primitives/softmax.hpp"
 using namespace cv::dnn::cuda4dnn;
+#endif
+
+#ifdef HAVE_METAL
+#include "../metal/op_softmax.hpp"
 #endif
 
 namespace cv
@@ -117,7 +122,8 @@ public:
         return backendId == DNN_BACKEND_OPENCV ||
                backendId == DNN_BACKEND_CUDA ||
                (backendId == DNN_BACKEND_HALIDE && haveHalide() && axisRaw == 1) ||
-               backendId == DNN_BACKEND_CANN;
+               backendId == DNN_BACKEND_CANN ||
+               backendId == DNN_BACKEND_METAL;
     }
 
 #ifdef HAVE_OPENCL
@@ -350,6 +356,14 @@ public:
     }
 
 #endif
+
+#ifdef HAVE_METAL
+    virtual Ptr<BackendNode> initMetal(const std::vector<Ptr<BackendWrapper>> &inputs,
+                                       const std::vector<Ptr<BackendWrapper>> &outputs) CV_OVERRIDE {
+        std::shared_ptr<metal::OpBase> op = std::make_shared<metal::OpSoftmax>("softmax");
+        return Ptr<BackendNode>(new MetalBackendNode(inputs, op, outputs));
+    }
+#endif // HAVE_METAL
 
     int64 getFLOPS(const std::vector<MatShape> &inputs,
                   const std::vector<MatShape> &outputs) const CV_OVERRIDE

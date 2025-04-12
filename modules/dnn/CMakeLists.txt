@@ -35,6 +35,10 @@ if(HAVE_CANN)
   ocv_target_compile_definitions(${the_module} PRIVATE "HAVE_CANN=1")
 endif()
 
+if(HAVE_METAL)
+  ocv_target_compile_definitions(${the_module} PRIVATE "HAVE_METAL=1")
+endif()
+
 ocv_option(OPENCV_DNN_CUDA "Build with CUDA support"
     HAVE_CUDA
     AND HAVE_CUBLAS
@@ -194,6 +198,18 @@ if(NOT EMSCRIPTEN)
   endif()
 endif()
 
+set(metal_srcs "")
+if(HAVE_METAL)
+  file(GLOB_RECURSE metal_dnn_srcs
+    "${CMAKE_CURRENT_LIST_DIR}/src/metal/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/src/metal/*.mm")
+  file(GLOB_RECURSE metal_dnn_int_hdrs
+    "${CMAKE_CURRENT_LIST_DIR}/src/metal/*.hpp"
+    "${CMAKE_CURRENT_LIST_DIR}/src/metal/*.h")
+  set(metal_srcs ${metal_dnn_srcs} ${metal_dnn_int_hdrs})
+  list(APPEND libs ${METAL_LIBRARIES})
+endif()
+
 ocv_module_include_directories(${include_dirs})
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   ocv_append_source_files_cxx_compiler_options(fw_srcs "-Wno-suggest-override")  # GCC
@@ -217,7 +233,7 @@ ocv_list_filterout_ex(dnn_plugin_srcs
     # importers
     "/src/(caffe|darknet|onnx|tensorflow|torch)/"
     # executors
-    "/src/(cuda|cuda4dnn|ocl4dnn|vkcom|webnn)/"
+    "/src/(cuda|cuda4dnn|ocl4dnn|vkcom|webnn|metal)/"
 )
 
 ocv_option(OPENCV_DNN_OPENVINO "Build with OpenVINO support (2021.4+)" (TARGET ocv.3rdparty.openvino))
@@ -241,7 +257,7 @@ endif()
 
 ocv_install_used_external_targets(${libs} ${dnn_runtime_libs})
 
-ocv_glob_module_sources(${sources_options} SOURCES ${fw_srcs} ${webnn_srcs})
+ocv_glob_module_sources(${sources_options} SOURCES ${fw_srcs} ${webnn_srcs} ${metal_srcs})
 ocv_create_module(${libs} ${dnn_runtime_libs})
 ocv_add_samples()
 ocv_add_accuracy_tests(${dnn_runtime_libs})
@@ -321,5 +337,15 @@ if(OPENCV_TEST_DNN_TFLITE)
   endif()
   if(TARGET opencv_perf_dnn)
     ocv_target_compile_definitions(opencv_perf_dnn PRIVATE "OPENCV_TEST_DNN_TFLITE=1")
+  endif()
+endif()
+
+ocv_option(OPENCV_TEST_DNN_METAL "Build test with Metal" (HAVE_METAL))
+if(OPENCV_TEST_DNN_METAL)
+  if(TARGET opencv_test_dnn)
+    ocv_target_compile_definitions(opencv_test_dnn PRIVATE "HAVE_METAL=1")
+  endif()
+  if(TARGET opencv_perf_dnn)
+    ocv_target_compile_definitions(opencv_test_dnn PRIVATE "HAVE_METAL=1")
   endif()
 endif()

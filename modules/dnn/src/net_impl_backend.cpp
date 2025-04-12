@@ -94,6 +94,13 @@ Ptr<BackendWrapper> Net::Impl::wrap(Mat& host)
         {
             CV_Assert(0 && "Internal error: DNN_BACKEND_CANN must be implemented through inheritance");
         }
+        else if (preferableBackend == DNN_BACKEND_METAL)
+        {
+            CV_Assert(haveMetal());
+#ifdef HAVE_METAL
+            return Ptr<BackendWrapper>(new MetalBackendWrapper(baseBuffer, host));
+#endif
+        }
         else
             CV_Error(Error::StsNotImplemented, "Unknown backend identifier");
     }
@@ -158,6 +165,14 @@ void Net::Impl::initBackend(const std::vector<LayerPin>& blobsToKeep_)
     else if (preferableBackend == DNN_BACKEND_CANN)
     {
         CV_Assert(0 && "Internal error: DNN_BACKEND_CANN must be implemented through inheritance");
+    }
+    else if (preferableBackend == DNN_BACKEND_METAL)
+    {
+#ifdef HAVE_METAL
+        initMetalBackend();
+#else
+        CV_Error(Error::StsNotImplemented, "This OpenCV version is built without support of Metal");
+#endif
     }
     else
     {
