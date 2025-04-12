@@ -121,7 +121,7 @@ Ptr<BackendWrapper> wrapMat(int backendId, int targetId, cv::Mat& m)
     {
         CV_Assert(0 && "Internal error: DNN_BACKEND_CANN must be implemented through inheritance");
     }
-    else if (backendId == DNN_BACKEND_METAL)
+    else if (backendId == DNN_BACKEND_MPS)
     {
         CV_Assert(haveMetal());
 #ifdef HAVE_METAL
