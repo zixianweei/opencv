@@ -15,6 +15,7 @@
 @property(strong, nonatomic) id<MTLLibrary> library;
 //@property(strong, nonatomic) NSMutableDictionary<NSString*, id<MTLComputePipelineState>>* cachedPSO;
 //@property(strong, nonatomic) NSMutableArray<id<MTLCommandBuffer>>* waitingCommandBuffer;
+- (BOOL)isAvailable;
 @end
 
 @implementation ContextImpl
@@ -37,6 +38,10 @@
     return self;
 }
 
+- (BOOL)isAvailable {
+    return _device != nil;
+}
+
 @end
 
 #endif // HAVE_METAL
@@ -56,9 +61,19 @@ std::shared_ptr<Context> Context::create()
     return g_ctx;
 }
 
+bool Context::isAvailable()
+{
+    return [Context::create()->context_impl_ isAvailable] == TRUE;
+}
+
 Context::Context()
 {
     context_impl_ = [ContextImpl new];
+}
+
+bool isAvailable()
+{
+    return Context::create()->isAvailable();
 }
 
 #endif // HAVE_METAL

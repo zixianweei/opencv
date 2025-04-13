@@ -49,6 +49,7 @@
 #include "../op_vkcom.hpp"
 #include "../op_webnn.hpp"
 #include "../op_cann.hpp"
+#include "../op_metal.hpp"
 
 #include <opencv2/core/utils/configuration.private.hpp>
 #include <opencv2/core/utils/logger.hpp>
@@ -357,6 +358,12 @@ public:
             return true;
         }
 #endif // HAVE_CANN
+#ifdef HAVE_METAL
+        if (backendId == DNN_BACKEND_MPS)
+        {
+            return ksize == 2;
+        }
+#endif
         return false;
     }
 
@@ -1392,6 +1399,18 @@ public:
 
         return make_cuda_node<cuda4dnn::ConvolutionOp>(
             preferableTarget, std::move(context->stream), std::move(context->cudnn_handle), config, filtersMat, biasMat);
+    }
+#endif
+    
+#ifdef HAVE_METAL
+    virtual Ptr<BackendNode> initMetal(void* context,
+                                       const std::vector<Ptr<BackendWrapper>> &inputs,
+                                       const std::vector<Ptr<BackendWrapper>> &outputs) CV_OVERRIDE
+    {
+        metal::Context* metal_context = static_cast<metal::Context*>(context);
+        CV_Assert(metal_context != nullptr);
+        
+        return nullptr;
     }
 #endif
 

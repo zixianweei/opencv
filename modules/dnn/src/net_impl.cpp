@@ -850,6 +850,10 @@ void Net::Impl::forwardLayer(LayerData& ld)
                 }
             }
 #endif
+            else if (preferableBackend == DNN_BACKEND_MPS)
+            {
+                forwardMetal(ld.outputBlobsWrappers, node);
+            }
             else
             {
                 CV_Error(Error::StsNotImplemented, cv::format("Unknown backend identifier: %d", preferableBackend));

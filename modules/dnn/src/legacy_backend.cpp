@@ -125,8 +125,7 @@ Ptr<BackendWrapper> wrapMat(int backendId, int targetId, cv::Mat& m)
     {
         CV_Assert(haveMetal());
 #ifdef HAVE_METAL
-        return nullptr; // TODO(zixianwei):
-        // return Ptr<BackendWrapper>(new MetalBackendWrapper());
+        return Ptr<BackendWrapper>(new MetalBackendWrapper(m));
 #endif // HAVE_METAL
     }
     else

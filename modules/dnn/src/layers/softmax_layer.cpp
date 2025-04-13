@@ -122,8 +122,7 @@ public:
         return backendId == DNN_BACKEND_OPENCV ||
                backendId == DNN_BACKEND_CUDA ||
                (backendId == DNN_BACKEND_HALIDE && haveHalide() && axisRaw == 1) ||
-               backendId == DNN_BACKEND_CANN ||
-               backendId == DNN_BACKEND_MPS;
+               backendId == DNN_BACKEND_CANN;
     }
 
 #ifdef HAVE_OPENCL
@@ -358,9 +357,10 @@ public:
 #endif
 
 #ifdef HAVE_METAL
-    virtual Ptr<BackendNode> initMetal(const std::vector<Ptr<BackendWrapper>> &inputs,
+    virtual Ptr<BackendNode> initMetal(void* context,
+                                       const std::vector<Ptr<BackendWrapper>> &inputs,
                                        const std::vector<Ptr<BackendWrapper>> &outputs) CV_OVERRIDE {
-        std::shared_ptr<metal::OpBase> op = std::make_shared<metal::OpSoftmax>("softmax");
+        std::shared_ptr<metal::OpBase> op = std::make_shared<metal::OpSoftmax>();
         return Ptr<BackendNode>(new MetalBackendNode(inputs, op, outputs));
     }
 #endif // HAVE_METAL

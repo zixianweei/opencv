@@ -378,7 +378,8 @@ CV__DNN_INLINE_NS_BEGIN
          * @param outputs output tensors of Metal operator
          * @return Ptr<BackendNode> 
          */
-        virtual Ptr<BackendNode> initMetal(const std::vector<Ptr<BackendWrapper>> &inputs,
+        virtual Ptr<BackendNode> initMetal(void* context,
+                                           const std::vector<Ptr<BackendWrapper>> &inputs,
                                            const std::vector<Ptr<BackendWrapper>> &outputs);
 
        /**

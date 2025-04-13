@@ -18,12 +18,43 @@ bool copyToMat(Mat& dst, const metal::Tensor& src)
     return src.copyDataFromDevice(dst.data);
 }
 
-MetalBackendNode::MetalBackendNode(const std::vector<Ptr<BackendWrapper>>& inputsWrapper,
+void createTensors(const std::vector<Ptr<BackendWrapper>>& wrappers, std::vector<metal::Tensor>& tensors)
+{
+    tensors.reserve(wrappers.size());
+    for (const Ptr<BackendWrapper>& wrapper : wrappers)
+    {
+        CV_Assert(!wrapper.empty());
+        tensors.push_back(wrapper.dynamicCast<MetalBackendWrapper>()->getTensor());
+    }
+}
+
+MetalBackendNode::MetalBackendNode(const std::vector<Ptr<BackendWrapper>>& inputs_wrapper,
                                    const std::shared_ptr<metal::OpBase>& op,
-                                   const std::vector<Ptr<BackendWrapper>>& outputsWrapper)
+                                   const std::vector<Ptr<BackendWrapper>>& outputs_wrapper)
                                    : BackendNode(DNN_BACKEND_MPS)
 {
     operation_ = op;
+    
+    inputs_wrapper_ = inputs_wrapper;
+    createTensors(inputs_wrapper_, inputs_);
+    
+    outputs_wrapper_ = outputs_wrapper;
+    createTensors(outputs_wrapper_, outputs_);
+}
+
+bool MetalBackendNode::forward()
+{
+    for (auto& e : inputs_wrapper_)
+    {
+        e.dynamicCast<MetalBackendWrapper>()->copyToDevice();
+    }
+    return operation_->forward(inputs_, outputs_);
+}
+
+MetalBackendWrapper::MetalBackendWrapper(Mat& m)
+: BackendWrapper(DNN_BACKEND_MPS, DNN_TARGET_METAL)
+{
+    host_ = m;
 }
 
 MetalBackendWrapper::MetalBackendWrapper(const Ptr<BackendWrapper>& baseBuffer, Mat& m)
@@ -43,6 +74,16 @@ void MetalBackendWrapper::copyToHost()
 void MetalBackendWrapper::setHostDirty()
 {
 
+}
+
+void MetalBackendWrapper::copyToDevice()
+{
+    
+}
+
+metal::Tensor MetalBackendWrapper::getTensor()
+{
+    return tensor_;
 }
 
 #endif // HAVE_METAL
@@ -65,17 +106,39 @@ void Net::Impl::initMetalBackend()
         Ptr<Layer> layer = layer_data.layerInstance;
         if (!layer->supportBackend(preferableBackend))
         {
-            std::string msg = "unsupport layer: [" + layer->name + "]";
-            CV_LOG_INFO(NULL, msg);
             continue;
         }
-            
+        
+        // TODO(zixianwei): Remove this when push to mainstream. For debug purpose only.
+        CV_LOG_INFO(NULL, "layer: [" + layer->name + "]");
+        
+        try
+        {
+            layer_data.backendNodes[DNN_BACKEND_MPS] = layer->initMetal(static_cast<void*>(metal_context_.get()), layer_data.inputBlobsWrappers, layer_data.outputBlobsWrappers);
+        }
+        catch (const cv::Exception& e)
+        {
+            CV_LOG_ERROR(NULL, "initMetal failed, fallback to CPU implementation. " << e.what());
+            layer_data.backendNodes[DNN_BACKEND_MPS] = Ptr<BackendNode>();
+        }
     }
+}
+
+void forwardMetal(std::vector<Ptr<BackendWrapper> > &outputs, const Ptr<BackendNode>& node)
+{
+#ifdef HAVE_METAL
+    CV_Assert(!node.empty());
+    
+    Ptr<MetalBackendNode> metal_node = node.dynamicCast<MetalBackendNode>();
+    
+    CV_Assert(metal_node->forward());
+    // TODO(zixianwei): setDirty
+#endif
 }
 
 bool haveMetal() {
 #ifdef HAVE_METAL
-    return true;
+    return metal::isAvailable();
 #else
     return false;
 #endif

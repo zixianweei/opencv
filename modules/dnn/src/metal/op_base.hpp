@@ -6,13 +6,17 @@
 namespace cv { namespace dnn { namespace metal {
 #ifdef HAVE_METAL
 
+class Tensor;
+
 class OpBase
 {
 public:
-    OpBase(std::string name);
-
+    OpBase() = default;
+    virtual ~OpBase() = default;
+    virtual bool forward(std::vector<Tensor>& ins, std::vector<Tensor>& outs) = 0;
+    
 private:
-    std::string name_;
+    std::string shader_name_;
 };
 
 #endif // HAVE_METAL

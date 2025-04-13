@@ -25,6 +25,8 @@ public:
     Context& operator=(const Context) = delete;
     Context(Context&&) noexcept = delete;
     Context& operator=(Context&&) noexcept = delete;
+    
+    bool isAvailable();
 
 private:
     Context();
