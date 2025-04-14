@@ -46,6 +46,7 @@ private:
     Mat host_;
     metal::Tensor tensor_;
     bool host_dirty_;
+    bool device_dirty_;
 };
 
 #endif // HAVE_METAL

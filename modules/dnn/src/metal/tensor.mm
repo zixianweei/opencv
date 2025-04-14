@@ -1,15 +1,45 @@
 #include "tensor.hpp"
+#include "context.hpp"
 
 #ifdef HAVE_METAL
 #include <Foundation/Foundation.h>
 #include <Metal/Metal.h>
 
+#pragma mark (Private Utilities)
+
+static int shapeCount(std::vector<int>& shape)
+{
+    int count = 1;
+    for (int& e : shape)
+    {
+        count *= e;
+    }
+    return count;
+}
+
+static int elementSize(cv::dnn::metal::Format format)
+{
+    switch (format) {
+        case cv::dnn::metal::Format::kFloat32:
+            return 4;
+            break;
+        case cv::dnn::metal::Format::kUnsignedChar8:
+            return 1;
+        default:
+            break;
+    }
+    // TODO(zixianwei): check here.
+    return 0;
+}
+
+#pragma mark (TensorImpl)
+
 @interface TensorImpl : NSObject
 @property(assign, nonatomic) id<MTLBuffer> buffer;
-@property(assign, nonatomic) id<MTLTexture> texture;
-@property(assign, nonatomic) NSUInteger size;
-@property(assign, nonatomic) MTLDataType dataType;
-@property(assign, nonatomic) MTLSize dimensions;
+@property(assign, nonatomic) std::vector<int> shape;
+@property(assign, nonatomic) cv::dnn::metal::Format format;
+- (instancetype)init;
+- (BOOL)reshape:(const void*)data shape:(std::vector<int>&)shape format:(cv::dnn::metal::Format)format;
 @end
 
 @implementation TensorImpl
@@ -17,55 +47,36 @@
 - (instancetype)init {
     self = [super init];
     if (self) {
-        _size = 0;
-        _dataType = MTLDataTypeFloat;
-        _dimensions = MTLSizeMake(0, 0, 0);
+        _buffer = nil;
+        _shape = {};
+        _format = cv::dnn::metal::Format::kUnknown;
     }
     return self;
 }
 
-- (BOOL)copyDataToDevice:(const void*)data {
-    if (!self.buffer || !data)
-        return FALSE;
+- (BOOL)reshape:(const void*)data shape:(std::vector<int>&)shape format:(cv::dnn::metal::Format)format {
+    id<MTLDevice> device = cv::dnn::metal::Context::getInstance().device();
     
-    void* bufferContents = [self.buffer contents];
-    if (!bufferContents) return FALSE;
+    _shape = shape;
+    _format = format;
     
-    memcpy(bufferContents, data, self.size);
+    int length = shapeCount(_shape) * elementSize(_format);
+    _buffer = [device newBufferWithLength:length options:MTLResourceStorageModeShared];
+    
+    memcpy(_buffer.contents, data, length);
+    
     return TRUE;
 }
 
 - (BOOL)copyDataFromDevice:(void *)data {
-    if (!self.buffer || !data) return FALSE;
-    
-    void* bufferContents = [self.buffer contents];
-    if (!bufferContents) return FALSE;
-    
-    memcpy(data, bufferContents, self.size);
     return TRUE;
-}
-
-- (void)allocateBufferWithDevice:(id<MTLDevice>)device size:(NSUInteger)size {
-    self.buffer = [device newBufferWithLength:size options:MTLResourceStorageModeShared];
-    self.size = size;
-}
-
-- (void)allocateTextureWithDevice:(id<MTLDevice>)device 
-                        width:(NSUInteger)width 
-                       height:(NSUInteger)height 
-                       depth:(NSUInteger)depth {
-    MTLTextureDescriptor* desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA32Float
-                                                                                    width:width
-                                                                                   height:height
-                                                                                mipmapped:NO];
-    desc.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
-    self.texture = [device newTextureWithDescriptor:desc];
-    self.dimensions = MTLSizeMake(width, height, depth);
 }
 
 @end
 
 #endif // HAVE_METAL
+
+#pragma mark (Tensor)
 
 namespace cv { namespace dnn { namespace metal {
 #ifdef HAVE_METAL
@@ -80,9 +91,9 @@ Tensor::~Tensor()
     [impl release];
 }
 
-bool Tensor::copyDataToDevice(const void* data)
+bool Tensor::reshape(const void* data, std::vector<int>& shape, Format format)
 {
-    return [impl copyDataToDevice:data] == TRUE;
+    return [impl reshape:data shape:shape format:format] == TRUE;
 }
 
 bool Tensor::copyDataFromDevice(void* data) const

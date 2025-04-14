@@ -9,7 +9,8 @@ namespace cv { namespace dnn {
 bool copyToTensor(metal::Tensor& dst, const Mat& src)
 {
     CV_Assert(src.isContinuous() && (src.type() == CV_8S || src.type() == CV_32F));
-    return dst.copyDataToDevice(src.data);
+    std::vector<int> shape = cv::dnn::shape(src);
+    return dst.reshape(src.data, shape);
 }
 
 bool copyToMat(Mat& dst, const metal::Tensor& src)
@@ -64,6 +65,10 @@ MetalBackendWrapper::MetalBackendWrapper(const Ptr<BackendWrapper>& baseBuffer, 
     CV_Assert(!base.empty());
 
     host_ = m;
+    
+    setHostDirty();
+    
+    this->copyToDevice();
 }
 
 void MetalBackendWrapper::copyToHost()
@@ -73,12 +78,16 @@ void MetalBackendWrapper::copyToHost()
 
 void MetalBackendWrapper::setHostDirty()
 {
-
+    host_dirty_ = true;
 }
 
 void MetalBackendWrapper::copyToDevice()
 {
-    
+    if (host_dirty_)
+    {
+        copyToTensor(tensor_, host_);
+        host_dirty_ = false;
+    }
 }
 
 metal::Tensor MetalBackendWrapper::getTensor()
@@ -96,8 +105,6 @@ void Net::Impl::initMetalBackend()
     if (!haveMetal())
         return;
     
-    metal_context_ = metal::Context::create();
-    
     for (auto it = layers.begin(); it != layers.end(); it++)
     {
         LayerData& layer_data = it->second;
@@ -114,7 +121,7 @@ void Net::Impl::initMetalBackend()
         
         try
         {
-            layer_data.backendNodes[DNN_BACKEND_MPS] = layer->initMetal(static_cast<void*>(metal_context_.get()), layer_data.inputBlobsWrappers, layer_data.outputBlobsWrappers);
+            layer_data.backendNodes[DNN_BACKEND_MPS] = layer->initMetal(layer_data.inputBlobsWrappers, layer_data.outputBlobsWrappers);
         }
         catch (const cv::Exception& e)
         {

@@ -193,7 +193,6 @@ struct Net::Impl : public detail::NetImplBase
 #endif
 
 #ifdef HAVE_METAL
-    std::shared_ptr<metal::Context> metal_context_;
     void initMetalBackend();
 #endif
 

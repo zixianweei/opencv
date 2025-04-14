@@ -1,15 +1,17 @@
 #ifndef OPENCV_DNN_METAL_CONTEXT_HPP
 #define OPENCV_DNN_METAL_CONTEXT_HPP
 
-#include <memory>
-
 #ifdef HAVE_METAL
 #ifdef __OBJC__
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 @class ContextImpl;
+typedef id<MTLDevice> MTLDeviceType;
+typedef id<MTLCommandBuffer> MTLCommandBufferType;
 #else
 typedef struct objc_object ContextImpl;
+typedef void* MTLDeviceType;
+typedef void* MTLCommandBufferType;
 #endif
 #endif
 
@@ -19,7 +21,7 @@ namespace cv { namespace dnn { namespace metal {
 
 class Context {
 public:
-    static std::shared_ptr<Context> create();
+    static Context& getInstance();
 
     Context(const Context&) = delete;
     Context& operator=(const Context) = delete;
@@ -27,6 +29,7 @@ public:
     Context& operator=(Context&&) noexcept = delete;
     
     bool isAvailable();
+    MTLDeviceType device();
 
 private:
     Context();

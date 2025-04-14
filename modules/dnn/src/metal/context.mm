@@ -4,18 +4,12 @@
 
 #import <Foundation/Foundation.h>
 
-#include <mutex>
-
 @interface ContextImpl : NSObject
 @property(assign, nonatomic) id<MTLDevice> device;
 @property(assign, nonatomic) id<MTLCommandQueue> commandQueue;
-@end
-
-@interface ContextImpl ()
 @property(strong, nonatomic) id<MTLLibrary> library;
-//@property(strong, nonatomic) NSMutableDictionary<NSString*, id<MTLComputePipelineState>>* cachedPSO;
-//@property(strong, nonatomic) NSMutableArray<id<MTLCommandBuffer>>* waitingCommandBuffer;
 - (BOOL)isAvailable;
+- (id<MTLDevice>)device;
 @end
 
 @implementation ContextImpl
@@ -42,6 +36,10 @@
     return _device != nil;
 }
 
+- (id<MTLDevice>)device {
+    return _device;
+}
+
 @end
 
 #endif // HAVE_METAL
@@ -49,21 +47,16 @@
 namespace cv { namespace dnn { namespace metal {
 #ifdef HAVE_METAL
 
-static std::shared_ptr<Context> g_ctx;
-static std::once_flag g_flag;
-
 // static
-std::shared_ptr<Context> Context::create()
+Context& Context::getInstance()
 {
-    std::call_once(g_flag, []() {
-        g_ctx = std::shared_ptr<Context>(new Context());
-    });
-    return g_ctx;
+    static Context instance;
+    return instance;
 }
 
 bool Context::isAvailable()
 {
-    return [Context::create()->context_impl_ isAvailable] == TRUE;
+    return [Context::getInstance().context_impl_ isAvailable] == TRUE;
 }
 
 Context::Context()
@@ -73,7 +66,11 @@ Context::Context()
 
 bool isAvailable()
 {
-    return Context::create()->isAvailable();
+    return Context::getInstance().isAvailable();
+}
+
+MTLDeviceType Context::device() {
+    return [context_impl_ device];
 }
 
 #endif // HAVE_METAL

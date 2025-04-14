@@ -15,23 +15,21 @@ typedef struct objc_object TensorImpl;
 namespace cv { namespace dnn { namespace metal {
 #ifdef HAVE_METAL
 
-class Tensor {
+enum class Format
+{
+    kUnknown,
+    kUnsignedChar8,
+    kFloat32,
+};
+
+class Tensor
+{
 public:
     Tensor();
     ~Tensor();
     
-    bool allocate(size_t size);
-    bool allocate(size_t width, size_t height, size_t depth);
-    void release();
-    
-    bool copyDataToDevice(const void* data);
+    bool reshape(const void* data, std::vector<int>& shape, Format format = Format::kFloat32);
     bool copyDataFromDevice(void* data) const;
-    
-    size_t size() const;
-    std::vector<size_t> shape() const;
-    
-    void* getBuffer() const;
-    void* getTexture() const;
 
 private:
     __strong TensorImpl* impl;

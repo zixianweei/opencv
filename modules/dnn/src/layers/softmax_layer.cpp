@@ -357,8 +357,7 @@ public:
 #endif
 
 #ifdef HAVE_METAL
-    virtual Ptr<BackendNode> initMetal(void* context,
-                                       const std::vector<Ptr<BackendWrapper>> &inputs,
+    virtual Ptr<BackendNode> initMetal(const std::vector<Ptr<BackendWrapper>> &inputs,
                                        const std::vector<Ptr<BackendWrapper>> &outputs) CV_OVERRIDE {
         std::shared_ptr<metal::OpBase> op = std::make_shared<metal::OpSoftmax>();
         return Ptr<BackendNode>(new MetalBackendNode(inputs, op, outputs));
