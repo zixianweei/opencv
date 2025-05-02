@@ -39,6 +39,7 @@ public:
     virtual void setHostDirty() CV_OVERRIDE;
     
     void copyToDevice();
+    void setDeviceDirty();
     
     metal::Tensor getTensor();
 

@@ -7,11 +7,17 @@
 namespace cv { namespace dnn { namespace metal {
 #ifdef HAVE_METAL
 
+struct OpSoftmaxProperty : public OpProperty
+{
+};
+
 class OpSoftmax final : public OpBase {
 public:
     OpSoftmax() = default;
     
     bool forward(std::vector<Tensor>& ins, std::vector<Tensor>& outs) CV_OVERRIDE;
+
+    bool allocOpProperty(const OpProperty* property) CV_OVERRIDE;
 };
 
 #endif // HAVE_METAL

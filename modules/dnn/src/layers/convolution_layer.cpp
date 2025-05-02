@@ -359,10 +359,10 @@ public:
         }
 #endif // HAVE_CANN
 #ifdef HAVE_METAL
-        if (backendId == DNN_BACKEND_MPS)
-        {
-            return ksize == 2;
-        }
+//        if (backendId == DNN_BACKEND_METAL)
+//        {
+//            return ksize == 2;
+//        }
 #endif
         return false;
     }

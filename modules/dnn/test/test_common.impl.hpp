@@ -40,7 +40,7 @@ void PrintTo(const cv::dnn::Backend& v, std::ostream* os)
     case DNN_BACKEND_WEBNN: *os << "WEBNN"; return;
     case DNN_BACKEND_TIMVX: *os << "TIMVX"; return;
     case DNN_BACKEND_CANN: *os << "CANN"; return;
-    case DNN_BACKEND_MPS: *os << "METAL"; return;
+    case DNN_BACKEND_METAL: *os << "METAL"; return;
     } // don't use "default:" to emit compiler warnings
     *os << "DNN_BACKEND_UNKNOWN(" << (int)v << ")";
 }
@@ -338,8 +338,8 @@ testing::internal::ParamGenerator< tuple<Backend, Target> > dnnBackendsAndTarget
 #ifdef HAVE_METAL
     if (withMetal)
     {
-        for (auto target : getAvailableTargets(DNN_BACKEND_MPS))
-            targets.push_back(make_tuple(DNN_BACKEND_MPS, target));
+        for (auto target : getAvailableTargets(DNN_BACKEND_METAL))
+            targets.push_back(make_tuple(DNN_BACKEND_METAL, target));
     }
 #else
     CV_UNUSED(withMetal);

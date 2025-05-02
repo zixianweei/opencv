@@ -262,6 +262,22 @@ ocv_create_module(${libs} ${dnn_runtime_libs})
 ocv_add_samples()
 ocv_add_accuracy_tests(${dnn_runtime_libs})
 
+if(HAVE_METAL)
+  file(GLOB_RECURSE metal_dnn_shaders "${CMAKE_CURRENT_LIST_DIR}/src/metal/shader/*.metal")
+  ocv_metallib_compile_shaders(${metal_dnn_shaders})
+  message(STATUS "the_module ${the_module}")
+  add_custom_target(
+    ${the_module}_metallib
+    DEPENDS OpenCV.metallib
+  )
+  target_link_options(
+    ${the_module}
+    PRIVATE
+    -Wl,-sectcreate,__TEXT,opencv_metallib,${CMAKE_BINARY_DIR}/OpenCV.metallib
+  )
+  add_dependencies(${the_module} ${the_module}_metallib)
+endif()
+
 if(NOT BUILD_PROTOBUF)
   if(TARGET opencv_test_dnn)
     ocv_target_compile_definitions(opencv_test_dnn PRIVATE "OPENCV_DNN_EXTERNAL_PROTOBUF=1")

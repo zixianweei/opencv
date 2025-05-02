@@ -1,44 +1,54 @@
 #ifndef OPENCV_DNN_METAL_CONTEXT_HPP
 #define OPENCV_DNN_METAL_CONTEXT_HPP
 
-#ifdef HAVE_METAL
+#include <string>
+
+#include "macros.hpp"
+
 #ifdef __OBJC__
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
-@class ContextImpl;
-typedef id<MTLDevice> MTLDeviceType;
-typedef id<MTLCommandBuffer> MTLCommandBufferType;
-#else
-typedef struct objc_object ContextImpl;
-typedef void* MTLDeviceType;
-typedef void* MTLCommandBufferType;
 #endif
-#endif
+
+OCV_METAL_FORWARD_DECLARATION(ContextImpl);
+
+OCV_METAL_TYPE_ALIAS(id<MTLDevice>, MTLDevicePtr);
+OCV_METAL_TYPE_ALIAS(id<MTLCommandBuffer>, MTLCommandBufferPtr);
+OCV_METAL_TYPE_ALIAS(id<MTLComputePipelineState>, MTLComputePipelineStatePtr);
+OCV_METAL_TYPE_ALIAS(id<MTLComputeCommandEncoder>, MTLComputeCommandEncoderPtr);
 
 namespace cv { namespace dnn { namespace metal {
 
 #ifdef HAVE_METAL
 
-class Context {
+class Context
+{
 public:
     static Context& getInstance();
+    
+    ~Context();
 
     Context(const Context&) = delete;
     Context& operator=(const Context) = delete;
     Context(Context&&) noexcept = delete;
     Context& operator=(Context&&) noexcept = delete;
-    
+
     bool isAvailable();
-    MTLDeviceType device();
+
+    MTLDevicePtr device();
+    MTLCommandBufferPtr commandQueue();
+    MTLComputePipelineStatePtr findComputePipelineState(const std::string& kname);
+    MTLComputeCommandEncoderPtr commandEncoder();
+    bool commit();
 
 private:
     Context();
-
-    __strong ContextImpl* context_impl_{};
+    
+    ContextImpl* impl_{nullptr};
 };
 
-#endif // HAVE_METAL
+#endif  // HAVE_METAL
 
-}}}
+}}}  // namespace cv::dnn::metal
 
-#endif // !OPENCV_DNN_METAL_CONTEXT_HPP
+#endif  // !OPENCV_DNN_METAL_CONTEXT_HPP

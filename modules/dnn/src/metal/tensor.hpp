@@ -4,13 +4,17 @@
 #include <cstdint>
 #include <vector>
 
-#ifdef HAVE_METAL
+#include "opencv2/dnn/dnn.hpp"
+
+#include "macros.hpp"
+
 #ifdef __OBJC__
-@class TensorImpl;
-#else
-typedef struct objc_object TensorImpl;
+#include <Foundation/Foundation.h>
+#include <Metal/Metal.h>
 #endif
-#endif
+
+OCV_METAL_FORWARD_DECLARATION(TensorImpl);
+OCV_METAL_TYPE_ALIAS(id<MTLBuffer>, MTLBufferPtr);
 
 namespace cv { namespace dnn { namespace metal {
 #ifdef HAVE_METAL
@@ -20,22 +24,26 @@ enum class Format
     kUnknown,
     kUnsignedChar8,
     kFloat32,
+    kFloat16,
 };
 
 class Tensor
 {
 public:
-    Tensor();
+    Tensor(Format format = Format::kFloat32);
+    Tensor(const void* data, MatShape& shape, Format format = Format::kFloat32);
     ~Tensor();
-    
-    bool reshape(const void* data, std::vector<int>& shape, Format format = Format::kFloat32);
-    bool copyDataFromDevice(void* data) const;
+
+    bool fromBytes(const void* data, MatShape& shape, Format format = Format::kFloat32);
+    bool toBytes(void** data, MatShape& shape, Format format = Format::kFloat32);
+    MatShape getShape() const;
+    MTLBufferPtr getRawBuffer();
 
 private:
-    __strong TensorImpl* impl;
+    TensorImpl* impl_;
 };
 
-#endif // HAVE_METAL
-}}}
+#endif  // HAVE_METAL
+}}}  // namespace cv::dnn::metal
 
-#endif // !OPENCV_DNN_METAL_TENSOR_HPP
+#endif  // !OPENCV_DNN_METAL_TENSOR_HPP

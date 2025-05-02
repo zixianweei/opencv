@@ -6,17 +6,18 @@
 namespace cv { namespace dnn {
 #ifdef HAVE_METAL
 
-bool copyToTensor(metal::Tensor& dst, const Mat& src)
+bool copyToTensor(metal::Tensor& dst, Mat& src)
 {
     CV_Assert(src.isContinuous() && (src.type() == CV_8S || src.type() == CV_32F));
-    std::vector<int> shape = cv::dnn::shape(src);
-    return dst.reshape(src.data, shape);
+    MatShape shape = cv::dnn::shape(src);
+    return dst.fromBytes(src.data, shape);
 }
 
-bool copyToMat(Mat& dst, const metal::Tensor& src)
+bool copyToMat(Mat& dst, metal::Tensor& src)
 {
     CV_Assert(dst.isContinuous() && (dst.type() == CV_8S || dst.type() == CV_32F));
-    return src.copyDataFromDevice(dst.data);
+    MatShape shape = cv::dnn::shape(dst);
+    return src.toBytes((void**)&dst.data, shape);
 }
 
 void createTensors(const std::vector<Ptr<BackendWrapper>>& wrappers, std::vector<metal::Tensor>& tensors)
@@ -32,7 +33,7 @@ void createTensors(const std::vector<Ptr<BackendWrapper>>& wrappers, std::vector
 MetalBackendNode::MetalBackendNode(const std::vector<Ptr<BackendWrapper>>& inputs_wrapper,
                                    const std::shared_ptr<metal::OpBase>& op,
                                    const std::vector<Ptr<BackendWrapper>>& outputs_wrapper)
-                                   : BackendNode(DNN_BACKEND_MPS)
+                                   : BackendNode(DNN_BACKEND_METAL)
 {
     operation_ = op;
     
@@ -53,13 +54,13 @@ bool MetalBackendNode::forward()
 }
 
 MetalBackendWrapper::MetalBackendWrapper(Mat& m)
-: BackendWrapper(DNN_BACKEND_MPS, DNN_TARGET_METAL)
+: BackendWrapper(DNN_BACKEND_METAL, DNN_TARGET_METAL)
 {
     host_ = m;
 }
 
 MetalBackendWrapper::MetalBackendWrapper(const Ptr<BackendWrapper>& baseBuffer, Mat& m)
-    : BackendWrapper(DNN_BACKEND_MPS, DNN_TARGET_METAL)
+    : BackendWrapper(DNN_BACKEND_METAL, DNN_TARGET_METAL)
 {
     Ptr<MetalBackendWrapper> base = baseBuffer.dynamicCast<MetalBackendWrapper>();
     CV_Assert(!base.empty());
@@ -73,7 +74,10 @@ MetalBackendWrapper::MetalBackendWrapper(const Ptr<BackendWrapper>& baseBuffer, 
 
 void MetalBackendWrapper::copyToHost()
 {
-
+    if (device_dirty_)
+    {
+        copyToMat(host_, tensor_);
+    }
 }
 
 void MetalBackendWrapper::setHostDirty()
@@ -90,17 +94,20 @@ void MetalBackendWrapper::copyToDevice()
     }
 }
 
+void MetalBackendWrapper::setDeviceDirty()
+{
+    device_dirty_ = true;
+}
+
 metal::Tensor MetalBackendWrapper::getTensor()
 {
     return tensor_;
 }
 
-#endif // HAVE_METAL
-
 void Net::Impl::initMetalBackend()
 {
     CV_TRACE_FUNCTION();
-    CV_Assert(preferableBackend == DNN_BACKEND_MPS);
+    CV_Assert(preferableBackend == DNN_BACKEND_METAL);
     
     if (!haveMetal())
         return;
@@ -121,17 +128,19 @@ void Net::Impl::initMetalBackend()
         
         try
         {
-            layer_data.backendNodes[DNN_BACKEND_MPS] = layer->initMetal(layer_data.inputBlobsWrappers, layer_data.outputBlobsWrappers);
+            layer_data.backendNodes[DNN_BACKEND_METAL] = layer->initMetal(layer_data.inputBlobsWrappers, layer_data.outputBlobsWrappers);
         }
         catch (const cv::Exception& e)
         {
             CV_LOG_ERROR(NULL, "initMetal failed, fallback to CPU implementation. " << e.what());
-            layer_data.backendNodes[DNN_BACKEND_MPS] = Ptr<BackendNode>();
+            layer_data.backendNodes[DNN_BACKEND_METAL] = Ptr<BackendNode>();
         }
     }
 }
 
-void forwardMetal(std::vector<Ptr<BackendWrapper> > &outputs, const Ptr<BackendNode>& node)
+#endif // HAVE_METAL
+
+void forwardMetal(std::vector<Ptr<BackendWrapper>> &outputs, const Ptr<BackendNode>& node)
 {
 #ifdef HAVE_METAL
     CV_Assert(!node.empty());
@@ -139,7 +148,10 @@ void forwardMetal(std::vector<Ptr<BackendWrapper> > &outputs, const Ptr<BackendN
     Ptr<MetalBackendNode> metal_node = node.dynamicCast<MetalBackendNode>();
     
     CV_Assert(metal_node->forward());
-    // TODO(zixianwei): setDirty
+    for (const Ptr<BackendWrapper>& output : outputs)
+    {
+        output.dynamicCast<MetalBackendWrapper>()->setDeviceDirty();
+    }
 #endif
 }
 

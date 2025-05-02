@@ -1,4 +1,5 @@
 #include "op_conv.hpp"
+#include "tensor.hpp"
 
 #ifdef HAVE_METAL
 #include <Foundation/Foundation.h>
@@ -29,13 +30,25 @@
 namespace cv { namespace dnn {namespace metal {
 #ifdef HAVE_METAL
 
-OpConv::OpConv() {
-    impl_ = [OpConvImpl new];
+OpConv::OpConv()
+{
+    impl_ = [[OpConvImpl alloc] init];
+}
+
+OpConv::~OpConv()
+{
+
 }
 
 bool OpConv::forward(std::vector<Tensor>& ins, std::vector<Tensor>& outs)
 {
-    return false;
+    CV_Assert(ins.size() == 1U && outs.size() == 1U);
+    return true;
+}
+
+bool OpConv::allocOpProperty(const OpProperty* property)
+{
+    return true;
 }
 
 #endif // HAVE_METAL

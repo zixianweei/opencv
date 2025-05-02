@@ -8,5 +8,10 @@ bool OpSoftmax::forward(std::vector<Tensor> &ins, std::vector<Tensor> &outs)
     return false;
 }
 
+bool OpSoftmax::allocOpProperty(const OpProperty* property)
+{
+    return false;
+}
+
 #endif // HAVE_METAL
 }}}
