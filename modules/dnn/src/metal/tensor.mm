@@ -112,7 +112,8 @@ int elementSize(cv::dnn::metal::Format format)
     // TODO: @zixianweei Hint, should release origin buffer or not. Please check this.
     if (dataLen > [self sizeInBytes])
     {
-        OCV_METAL_SAFE_RELEASE([self buffer]);
+        id<MTLBuffer> buffer = [self buffer];
+        OCV_METAL_SAFE_RELEASE(buffer);
         [self setBuffer:[device newBufferWithLength:dataLen options:MTLResourceStorageModeShared]];
         if ([self buffer] == nil)
         {
@@ -167,6 +168,38 @@ Tensor::Tensor(const void* data, MatShape& shape, Format format)
 Tensor::~Tensor()
 {
     OCV_METAL_SAFE_RELEASE(impl_);
+}
+
+Tensor::Tensor(const Tensor& rhs)
+{
+    impl_ = [[TensorImpl alloc] init];
+    [impl_ fromBytes:[rhs.impl_ buffer].contents shape:[rhs.impl_ shape] format:[rhs.impl_ format]];
+}
+
+Tensor& Tensor::operator=(const Tensor& rhs)
+{
+    if (this != &rhs)
+    {
+        OCV_METAL_SAFE_RELEASE(impl_);
+        impl_ = [[TensorImpl alloc] init];
+        [impl_ fromBytes:[rhs.impl_ buffer].contents shape:[rhs.impl_ shape] format:[rhs.impl_ format]];
+    }
+    return *this;
+}
+
+Tensor::Tensor(Tensor&& rhs) noexcept
+{
+    std::swap(impl_, rhs.impl_);
+}
+
+Tensor& Tensor::operator=(Tensor&& rhs) noexcept
+{
+    if (this != &rhs)
+    {
+        OCV_METAL_SAFE_RELEASE(impl_);
+        std::swap(impl_, rhs.impl_);
+    }
+    return *this;
 }
 
 bool Tensor::fromBytes(const void *data, MatShape &shape, Format format)

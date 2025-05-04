@@ -6,6 +6,7 @@
     if (__object__ != nil) \
     { \
         [__object__ release]; \
+        __object__ = nil; \
     }
 #else
 #define OCV_METAL_SAFE_RELEASE(__object__) __object__ = nil;

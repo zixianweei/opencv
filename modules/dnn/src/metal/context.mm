@@ -5,7 +5,7 @@
 
 #include "opencv2/core/utils/logger.hpp"
 
-static const char* const image_name = "libopencv_dnn.dylib";
+static const char* const image_name = "libopencv_dnn.4.12.0.dylib";
 static const char* const section_name = "opencv_metallib";
 
 static dispatch_data_t find_section_data(const std::string& section_name)

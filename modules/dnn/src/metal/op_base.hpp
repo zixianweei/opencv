@@ -14,6 +14,12 @@ class OpBase
 public:
     OpBase() = default;
     virtual ~OpBase() = default;
+
+    OpBase(const OpBase&) = delete;
+    OpBase& operator=(const OpBase&) = delete;
+    OpBase(OpBase&&) noexcept = delete;
+    OpBase& operator=(OpBase&&) noexcept = delete;
+
     virtual bool forward(std::vector<Tensor>& ins, std::vector<Tensor>& outs) = 0;
 };
 

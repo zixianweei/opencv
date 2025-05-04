@@ -56,7 +56,11 @@ bool MetalBackendNode::forward()
 MetalBackendWrapper::MetalBackendWrapper(Mat& m)
 : BackendWrapper(DNN_BACKEND_METAL, DNN_TARGET_METAL)
 {
+    CV_Assert(m.isContinuous());
     host_ = m;
+    copyToTensor(tensor_, host_);
+    host_dirty_ = false;
+    device_dirty_ = false;
 }
 
 MetalBackendWrapper::MetalBackendWrapper(const Ptr<BackendWrapper>& baseBuffer, Mat& m)
@@ -66,10 +70,9 @@ MetalBackendWrapper::MetalBackendWrapper(const Ptr<BackendWrapper>& baseBuffer, 
     CV_Assert(!base.empty());
 
     host_ = m;
-
-    setHostDirty();
-
-    this->copyToDevice();
+    tensor_ = base->tensor_;
+    host_dirty_ = false;
+    device_dirty_ = false;
 }
 
 void MetalBackendWrapper::copyToHost()

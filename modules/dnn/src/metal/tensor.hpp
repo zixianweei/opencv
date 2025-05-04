@@ -34,6 +34,11 @@ public:
     Tensor(const void* data, MatShape& shape, Format format = Format::kFloat32);
     ~Tensor();
 
+    Tensor(const Tensor& rhs);
+    Tensor& operator=(const Tensor& rhs);
+    Tensor(Tensor&& rhs) noexcept;
+    Tensor& operator=(Tensor&& rhs) noexcept;
+
     bool fromBytes(const void* data, MatShape& shape, Format format = Format::kFloat32);
     bool toBytes(void** data, MatShape& shape, Format format = Format::kFloat32);
     MatShape getShape() const;
