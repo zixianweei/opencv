@@ -25,7 +25,7 @@ class Context
 {
 public:
     static Context& getInstance();
-    
+
     ~Context();
 
     Context(const Context&) = delete;
@@ -43,7 +43,7 @@ public:
 
 private:
     Context();
-    
+
     ContextImpl* impl_{nullptr};
 };
 

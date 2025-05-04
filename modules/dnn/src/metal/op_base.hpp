@@ -9,20 +9,12 @@ namespace cv { namespace dnn { namespace metal {
 
 class Tensor;
 
-struct OpProperty
-{
-};
-
 class OpBase
 {
 public:
     OpBase() = default;
     virtual ~OpBase() = default;
     virtual bool forward(std::vector<Tensor>& ins, std::vector<Tensor>& outs) = 0;
-    virtual bool allocOpProperty(const OpProperty* property) = 0;
-    
-private:
-    std::string shader_name_;
 };
 
 #endif // HAVE_METAL

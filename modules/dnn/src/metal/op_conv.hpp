@@ -15,11 +15,9 @@ class OpConv final : public OpBase
 public:
     OpConv();
     ~OpConv();
-    
+
     bool forward(std::vector<Tensor>& ins, std::vector<Tensor>& outs) CV_OVERRIDE;
 
-    bool allocOpProperty(const OpProperty* property) CV_OVERRIDE;
-    
 private:
     OpConvImpl* impl_;
 };

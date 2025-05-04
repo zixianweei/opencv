@@ -55,7 +55,7 @@ typedef NSMutableArray<id<MTLCommandBuffer>>* CommandBufferArray;
 
 - (instancetype)init {
     self = [super init];
-    
+
     if (_device == nil) {
         _device = MTLCreateSystemDefaultDevice();
         CV_LOG_INFO(NULL, "Device name: " << [[_device name] UTF8String] << ".");
@@ -64,7 +64,7 @@ typedef NSMutableArray<id<MTLCommandBuffer>>* CommandBufferArray;
         CV_LOG_ERROR(NULL, __func__ << ": error: failed to create metal device.");
         return nil;
     }
-    
+
     if (_commandQueue == nil) {
         _commandQueue = [_device newCommandQueue];
     }
@@ -82,7 +82,7 @@ typedef NSMutableArray<id<MTLCommandBuffer>>* CommandBufferArray;
         }
         CV_LOG_INFO(NULL, __func__ << ": create library from section");
     }
-    
+
     return self;
 }
 

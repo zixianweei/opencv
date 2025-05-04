@@ -14,7 +14,7 @@
 - (instancetype)init {
     self = [super init];
     return self;
-    
+
     // create tensor input output
     // copy data from input tensor, host to device
     // forward conv -> shader msl metal shader language
@@ -43,11 +43,6 @@ OpConv::~OpConv()
 bool OpConv::forward(std::vector<Tensor>& ins, std::vector<Tensor>& outs)
 {
     CV_Assert(ins.size() == 1U && outs.size() == 1U);
-    return true;
-}
-
-bool OpConv::allocOpProperty(const OpProperty* property)
-{
     return true;
 }
 

@@ -98,17 +98,17 @@ int elementSize(cv::dnn::metal::Format format)
         CV_LOG_ERROR(NULL, __func__ << ": metal context device is nil.");
         return FALSE;
     }
-    
+
     [self setShape:shape];
     [self setFormat:format];
-    
+
     int dataLen = shapeCount(_shape) * elementSize(_format);
     if (dataLen <= 0)
     {
         CV_LOG_ERROR(NULL, __func__ << ": metal invalid buffer length. length = " << dataLen);
         return FALSE;
     }
-    
+
     // TODO: @zixianweei Hint, should release origin buffer or not. Please check this.
     if (dataLen > [self sizeInBytes])
     {
@@ -120,14 +120,14 @@ int elementSize(cv::dnn::metal::Format format)
             return FALSE;
         }
     }
-    
+
     [self setSizeInBytes:dataLen];
-    
+
     if (data != nullptr)
     {
         std::ignore = memcpy([self buffer].contents, data, dataLen);
     }
-    
+
     return TRUE;
 }
 
@@ -141,7 +141,7 @@ int elementSize(cv::dnn::metal::Format format)
         CV_LOG_ERROR(NULL, __func__ << ": data is larger than buffer. data length = " << dataLen << ".");
         return FALSE;
     }
-    
+
     std::ignore = memcpy(*data, [self buffer].contents, dataLen);
     return TRUE;
 }

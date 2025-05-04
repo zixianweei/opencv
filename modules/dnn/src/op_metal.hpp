@@ -37,11 +37,13 @@ public:
 
     virtual void copyToHost() CV_OVERRIDE;
     virtual void setHostDirty() CV_OVERRIDE;
-    
+
     void copyToDevice();
     void setDeviceDirty();
-    
+
     metal::Tensor getTensor();
+
+    Mat& getMat();
 
 private:
     Mat host_;

@@ -36,10 +36,10 @@ MetalBackendNode::MetalBackendNode(const std::vector<Ptr<BackendWrapper>>& input
                                    : BackendNode(DNN_BACKEND_METAL)
 {
     operation_ = op;
-    
+
     inputs_wrapper_ = inputs_wrapper;
     createTensors(inputs_wrapper_, inputs_);
-    
+
     outputs_wrapper_ = outputs_wrapper;
     createTensors(outputs_wrapper_, outputs_);
 }
@@ -66,9 +66,9 @@ MetalBackendWrapper::MetalBackendWrapper(const Ptr<BackendWrapper>& baseBuffer, 
     CV_Assert(!base.empty());
 
     host_ = m;
-    
+
     setHostDirty();
-    
+
     this->copyToDevice();
 }
 
@@ -104,14 +104,19 @@ metal::Tensor MetalBackendWrapper::getTensor()
     return tensor_;
 }
 
+Mat& MetalBackendWrapper::getMat()
+{
+    return host_;
+}
+
 void Net::Impl::initMetalBackend()
 {
     CV_TRACE_FUNCTION();
     CV_Assert(preferableBackend == DNN_BACKEND_METAL);
-    
+
     if (!haveMetal())
         return;
-    
+
     for (auto it = layers.begin(); it != layers.end(); it++)
     {
         LayerData& layer_data = it->second;
@@ -122,10 +127,7 @@ void Net::Impl::initMetalBackend()
         {
             continue;
         }
-        
-        // TODO(zixianwei): Remove this when push to mainstream. For debug purpose only.
-        CV_LOG_INFO(NULL, "layer: [" + layer->name + "]");
-        
+
         try
         {
             layer_data.backendNodes[DNN_BACKEND_METAL] = layer->initMetal(layer_data.inputBlobsWrappers, layer_data.outputBlobsWrappers);
@@ -144,9 +146,9 @@ void forwardMetal(std::vector<Ptr<BackendWrapper>> &outputs, const Ptr<BackendNo
 {
 #ifdef HAVE_METAL
     CV_Assert(!node.empty());
-    
+
     Ptr<MetalBackendNode> metal_node = node.dynamicCast<MetalBackendNode>();
-    
+
     CV_Assert(metal_node->forward());
     for (const Ptr<BackendWrapper>& output : outputs)
     {
