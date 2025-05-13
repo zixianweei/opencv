@@ -358,12 +358,6 @@ public:
             return true;
         }
 #endif // HAVE_CANN
-#ifdef HAVE_METAL
-//        if (backendId == DNN_BACKEND_METAL)
-//        {
-//            return ksize == 2;
-//        }
-#endif
         return false;
     }
 
@@ -1399,16 +1393,6 @@ public:
 
         return make_cuda_node<cuda4dnn::ConvolutionOp>(
             preferableTarget, std::move(context->stream), std::move(context->cudnn_handle), config, filtersMat, biasMat);
-    }
-#endif
-    
-#ifdef HAVE_METAL
-    virtual Ptr<BackendNode> initMetal(const std::vector<Ptr<BackendWrapper>> &inputs,
-                                       const std::vector<Ptr<BackendWrapper>> &outputs) CV_OVERRIDE
-    {
-        Ptr<metal::OpBase> op = new metal::OpConv();
-        
-        return Ptr<BackendNode>(new MetalBackendNode(inputs, op, outputs));
     }
 #endif
 

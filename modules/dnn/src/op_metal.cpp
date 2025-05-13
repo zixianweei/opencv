@@ -10,14 +10,14 @@ bool copyToTensor(metal::Tensor& dst, Mat& src)
 {
     CV_Assert(src.isContinuous() && (src.type() == CV_8S || src.type() == CV_32F));
     MatShape shape = cv::dnn::shape(src);
-    return dst.fromBytes(src.data, shape);
+    return dst.upload(src.data, shape);
 }
 
 bool copyToMat(Mat& dst, metal::Tensor& src)
 {
     CV_Assert(dst.isContinuous() && (dst.type() == CV_8S || dst.type() == CV_32F));
     MatShape shape = cv::dnn::shape(dst);
-    return src.toBytes((void**)&dst.data, shape);
+    return src.download(dst.data, shape);
 }
 
 void createTensors(const std::vector<Ptr<BackendWrapper>>& wrappers, std::vector<metal::Tensor>& tensors)

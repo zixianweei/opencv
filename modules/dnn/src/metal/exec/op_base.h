@@ -1,11 +1,11 @@
-#ifndef OPENCV_DNN_METAL_OP_BASE_HPP
-#define OPENCV_DNN_METAL_OP_BASE_HPP
+#ifndef OPENCV_DNN_METAL_EXEC_OP_BASE_H
+#define OPENCV_DNN_METAL_EXEC_OP_BASE_H
 
-#include <string>
 #include <vector>
 
-namespace cv { namespace dnn { namespace metal {
 #ifdef HAVE_METAL
+
+namespace cv { namespace dnn { namespace metal {
 
 class Tensor;
 
@@ -20,10 +20,11 @@ public:
     OpBase(OpBase&&) noexcept = delete;
     OpBase& operator=(OpBase&&) noexcept = delete;
 
-    virtual bool forward(std::vector<Tensor>& ins, std::vector<Tensor>& outs) = 0;
+    virtual bool forward(std::vector<Tensor>& inputs, std::vector<Tensor>& outputs) = 0;
 };
 
-#endif // HAVE_METAL
-}}}
+}}} // namespace cv::dnn::metal
 
-#endif // !OPENCV_DNN_METAL_OP_BASE_HPP
+#endif // HAVE_METAL
+
+#endif // !OPENCV_DNN_METAL_EXEC_OP_BASE_H

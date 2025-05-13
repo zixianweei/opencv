@@ -67,7 +67,7 @@ using namespace cv::dnn::cuda4dnn;
 #endif
 
 #ifdef HAVE_METAL
-#include "../metal/op_softmax.hpp"
+#include "../metal/exec/op_softmax.h"
 #endif
 
 namespace cv
@@ -360,7 +360,7 @@ public:
 #ifdef HAVE_METAL
     virtual Ptr<BackendNode> initMetal(const std::vector<Ptr<BackendWrapper>> &inputs,
                                        const std::vector<Ptr<BackendWrapper>> &outputs) CV_OVERRIDE {
-        std::shared_ptr<metal::OpSoftmax> op = std::make_shared<metal::OpSoftmax>();
+        std::shared_ptr<metal::OpSoftmax> op = std::make_shared<metal::OpSoftmax>(axisRaw, logSoftMax);
         return Ptr<BackendNode>(new MetalBackendNode(inputs, op, outputs));
     }
 #endif // HAVE_METAL

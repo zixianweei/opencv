@@ -1,21 +1,19 @@
 #ifndef OPENCV_DNN_METAL_HPP
 #define OPENCV_DNN_METAL_HPP
 
-namespace cv { namespace dnn { namespace metal {
-
 #ifdef HAVE_METAL
+
+namespace cv { namespace dnn { namespace metal {
 
 bool isAvailable();
 
+}}} // namespace cv::dnn::metal
+
+#include "base/tensor.h"
+
+#include "exec/op_base.h"
+#include "exec/op_softmax.h"
+
 #endif // HAVE_METAL
-
-}}}
-
-#include "context.hpp"
-#include "tensor.hpp"
-
-#include "op_base.hpp"
-#include "op_conv.hpp"
-#include "op_softmax.hpp"
 
 #endif // !OPENCV_DNN_METAL_HPP

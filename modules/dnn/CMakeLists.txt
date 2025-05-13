@@ -263,7 +263,7 @@ ocv_add_samples()
 ocv_add_accuracy_tests(${dnn_runtime_libs})
 
 if(HAVE_METAL)
-  file(GLOB_RECURSE metal_dnn_shaders "${CMAKE_CURRENT_LIST_DIR}/src/metal/shader/*.metal")
+  file(GLOB_RECURSE metal_dnn_shaders "${CMAKE_CURRENT_LIST_DIR}/src/metal/exec/*.metal")
   ocv_metallib_compile_shaders(${metal_dnn_shaders})
   message(STATUS "the_module ${the_module}")
   add_custom_target(
