@@ -8,7 +8,6 @@ struct OpSoftmaxAttribute
     int i_size; // inner size
     int o_size; // outer size
     int r_size; // reduce size
-    bool log_softmax; // is log softmax
 };
 
 }}} // namespace cv::dnn::metal

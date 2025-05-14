@@ -14,9 +14,9 @@
 
 namespace {
 
-std::string op_softmax_kernel_name(int /* axis, unused */)
+std::string op_softmax_kernel_name(int /* axis, unused */, bool log_softmax)
 {
-    return "kernel_softmax";
+    return log_softmax ? "kernel_log_softmax" : "kernel_softmax";
 }
 
 id<MTLBuffer> op_softmax_make_attribute(const cv::dnn::metal::Tensor& src, const cv::dnn::metal::Tensor& dst, int axis, bool log_softmax)
@@ -27,7 +27,6 @@ id<MTLBuffer> op_softmax_make_attribute(const cv::dnn::metal::Tensor& src, const
     attr.o_size = cv::dnn::metal::shapeCount(src.shape(), 0, axis);
     attr.i_size = cv::dnn::metal::shapeCount(src.shape(), axis + 1);
     attr.r_size = cv::dnn::metal::shapeContent(src.shape(), axis);
-    attr.log_softmax = log_softmax;
 
     id<MTLBuffer> buffer = [[MTL4DNN_CONTEXT device] newBufferWithBytes:&attr length:sizeof(attr) options:MTLResourceStorageModeShared];
     if (buffer == nil)
@@ -57,7 +56,7 @@ bool OpSoftmax::forward(std::vector<Tensor>& inputs, std::vector<Tensor>& output
         return false;
     }
 
-    NSString* kernelName = [[NSString alloc] initWithFormat:@"%s", op_softmax_kernel_name(axis()).c_str()];
+    NSString* kernelName = [[NSString alloc] initWithFormat:@"%s", op_softmax_kernel_name(axis(), logSoftmax()).c_str()];
     id<MTLComputePipelineState> computePipelineState = [MTL4DNN_CONTEXT findComputePipelineState:kernelName];
     if (computePipelineState == nil)
     {
