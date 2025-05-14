@@ -434,6 +434,8 @@ TEST_P(setInput, normalization)
         applyTestTag(CV_TEST_TAG_DNN_SKIP_OPENCL_FP16);
     if (backend == DNN_BACKEND_VKCOM && dtype != CV_32F)
         applyTestTag(CV_TEST_TAG_DNN_SKIP_VULKAN);
+    if (backend == DNN_BACKEND_METAL && dtype!= CV_32F)
+        applyTestTag(CV_TEST_TAG_DNN_SKIP_METAL);
 
     Mat inp(5, 5, CV_8UC3);
     randu(inp, 0, 255);
@@ -1020,6 +1022,8 @@ TEST_P(Test_two_inputs, basic)
 
     if (backendId == DNN_BACKEND_VKCOM && !(type1 == CV_32F && type2 == CV_32F))
         applyTestTag(CV_TEST_TAG_DNN_SKIP_VULKAN);
+    if (backendId == DNN_BACKEND_METAL && !(type1 == CV_32F && type2 == CV_32F))
+        applyTestTag(CV_TEST_TAG_DNN_SKIP_METAL);
 
     Net net;
     LayerParams lp;

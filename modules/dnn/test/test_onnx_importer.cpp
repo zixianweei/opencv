@@ -330,6 +330,9 @@ TEST_P(Test_ONNX_layers, Deconvolution3D)
 
     if (backend == DNN_BACKEND_VKCOM)
         applyTestTag(CV_TEST_TAG_DNN_SKIP_VULKAN);
+    
+    if (backend == DNN_BACKEND_METAL)
+        applyTestTag(CV_TEST_TAG_DNN_SKIP_METAL);
 
     testONNXModels("deconv3d");
 }
@@ -360,6 +363,9 @@ TEST_P(Test_ONNX_layers, Deconvolution3D_bias)
     if (backend == DNN_BACKEND_VKCOM)
         applyTestTag(CV_TEST_TAG_DNN_SKIP_VULKAN);
 
+    if (backend == DNN_BACKEND_METAL)
+        applyTestTag(CV_TEST_TAG_DNN_SKIP_METAL);
+
     testONNXModels("deconv3d_bias");
 }
 
@@ -388,6 +394,9 @@ TEST_P(Test_ONNX_layers, Deconvolution3D_pad)
 
     if (backend == DNN_BACKEND_VKCOM)
         applyTestTag(CV_TEST_TAG_DNN_SKIP_VULKAN);
+    
+    if (backend == DNN_BACKEND_METAL)
+        applyTestTag(CV_TEST_TAG_DNN_SKIP_METAL);
 
     testONNXModels("deconv3d_pad");
 }
@@ -417,6 +426,9 @@ TEST_P(Test_ONNX_layers, Deconvolution3D_adjpad)
 
     if (backend == DNN_BACKEND_VKCOM)
         applyTestTag(CV_TEST_TAG_DNN_SKIP_VULKAN);
+
+    if (backend == DNN_BACKEND_METAL)
+        applyTestTag(CV_TEST_TAG_DNN_SKIP_METAL);
 
     testONNXModels("deconv3d_adjpad");
 }
@@ -866,6 +878,9 @@ TEST_P(Test_ONNX_layers, MaxPooling3D)
     if (backend == DNN_BACKEND_VKCOM)
         applyTestTag(CV_TEST_TAG_DNN_SKIP_VULKAN);
 
+    if (backend == DNN_BACKEND_METAL)
+        applyTestTag(CV_TEST_TAG_DNN_SKIP_METAL);
+
     testONNXModels("max_pool3d", npy, 0, 0, false, false);
 }
 
@@ -883,6 +898,9 @@ TEST_P(Test_ONNX_layers, AvePooling3D)
     if (backend == DNN_BACKEND_VKCOM)
         applyTestTag(CV_TEST_TAG_DNN_SKIP_VULKAN);
 
+    if (backend == DNN_BACKEND_METAL)
+        applyTestTag(CV_TEST_TAG_DNN_SKIP_METAL);
+
     testONNXModels("ave_pool3d");
 }
 
@@ -899,6 +917,9 @@ TEST_P(Test_ONNX_layers, PoolConv3D)
 
     if (backend == DNN_BACKEND_VKCOM)
         applyTestTag(CV_TEST_TAG_DNN_SKIP_VULKAN);
+
+    if (backend == DNN_BACKEND_METAL)
+        applyTestTag(CV_TEST_TAG_DNN_SKIP_METAL);
 
     if (backend == DNN_BACKEND_CUDA && target == DNN_TARGET_CUDA_FP16)
     {

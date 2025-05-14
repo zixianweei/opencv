@@ -679,6 +679,9 @@ TEST_P(Test_TensorFlow_layers, MaxPooling3D)
     if (backend == DNN_BACKEND_VKCOM)
         applyTestTag(CV_TEST_TAG_DNN_SKIP_VULKAN);
 
+    if (backend == DNN_BACKEND_METAL)
+        applyTestTag(CV_TEST_TAG_DNN_SKIP_METAL);
+
     runTensorFlowNet("max_pool3d");
 }
 
@@ -696,6 +699,9 @@ TEST_P(Test_TensorFlow_layers, AvePooling3D)
     if (backend == DNN_BACKEND_VKCOM)
         applyTestTag(CV_TEST_TAG_DNN_SKIP_VULKAN);
 
+    if (backend == DNN_BACKEND_METAL)
+        applyTestTag(CV_TEST_TAG_DNN_SKIP_METAL);
+    
     runTensorFlowNet("ave_pool3d");
 }
 

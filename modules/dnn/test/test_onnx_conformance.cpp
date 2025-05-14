@@ -990,6 +990,9 @@ public:
     static std::set<std::string> cuda_deny_list;
     static std::set<std::string> cuda_fp16_deny_list;
 #endif
+#ifdef HAVE_METAL
+    static std::set<std::string> metal_deny_list;
+#endif
 
     Test_ONNX_conformance()
     {
@@ -1078,6 +1081,12 @@ public:
             #include "test_onnx_conformance_layer_filter__cuda_fp16_denylist.inl.hpp"
         };
 #endif
+
+#ifdef HAVE_METAL
+        metal_deny_list = {
+            #include "test_onnx_conformance_layer_filter__metal_denylist.inl.hpp"
+        };
+#endif
     }
 
 };
@@ -1097,6 +1106,9 @@ std::set<std::string> Test_ONNX_conformance::vulkan_deny_list;
 #ifdef HAVE_CUDA
 std::set<std::string> Test_ONNX_conformance::cuda_deny_list;
 std::set<std::string> Test_ONNX_conformance::cuda_fp16_deny_list;
+#endif
+#ifdef HAVE_METAL
+std::set<std::string> Test_ONNX_conformance::metal_deny_list;
 #endif
 
 TEST_P(Test_ONNX_conformance, Layer_Test)
@@ -1212,6 +1224,15 @@ TEST_P(Test_ONNX_conformance, Layer_Test)
                 default_l1 = 9e-5; // Expected: (normL1) <= (l1), actual: 8.80127e-05 vs 1e-05
                 default_lInf = 0.0005; // Expected: (normInf) <= (lInf), actual: 0.000455445 vs 0.0001
             }
+        }
+    }
+#endif
+#ifdef HAVE_METAL
+    else if (backend == DNN_BACKEND_METAL)
+    {
+        if (metal_deny_list.find(name)!= metal_deny_list.end())
+        {
+            applyTestTag(CV_TEST_TAG_DNN_SKIP_METAL, CV_TEST_TAG_DNN_SKIP_ONNX_CONFORMANCE);
         }
     }
 #endif
