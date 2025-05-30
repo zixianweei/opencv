@@ -20,44 +20,6 @@ bool OpSoftmax::forward(std::vector<Tensor>& inputs, std::vector<Tensor>& output
     Tensor& src = inputs[0];
     Tensor& dst = outputs[0];
 
-#if 0
-    id<MTLComputeCommandEncoder> commandEncoder = [MTL4DNN_CONTEXT makeEncoder];
-    if (commandEncoder == nil)
-    {
-        CV_LOG_ERROR(NULL, __func__ << ": command encoder is nil.");
-        return false;
-    }
-
-    NSString* kernelName = [[NSString alloc] initWithFormat:@"%s", op_softmax_kernel_name(axis(), logSoftmax()).c_str()];
-    id<MTLComputePipelineState> computePipelineState = [MTL4DNN_CONTEXT findComputePipelineState:kernelName];
-    if (computePipelineState == nil)
-    {
-        CV_LOG_ERROR(NULL, __func__ << ": compute pipeline state is nil.");
-        return false;
-    }
-
-    [commandEncoder setComputePipelineState:computePipelineState];
-    [commandEncoder setBuffer:src.buffer()->rawBuffer() offset:0 atIndex:0];
-    [commandEncoder setBuffer:dst.buffer()->rawBuffer() offset:0 atIndex:1];
-    [commandEncoder setBuffer:op_softmax_make_attribute(src, dst, axis(), logSoftmax()) offset:0 atIndex:2];
-
-    // NSUInteger maxTotalThreadsPerThreadgroup = [computePipelineState maxTotalThreadsPerThreadgroup];
-    // NSUInteger threadExecutionWidth = [computePipelineState threadExecutionWidth];
-    // NSUInteger threadExecutionHeight = maxTotalThreadsPerThreadgroup / threadExecutionWidth;
-
-    MTLSize threads = MTLSizeMake(shapeCount(dst.shape(), axis() + 1), 1, shapeCount(dst.shape(), 0, axis()));
-    MTLSize threadsPerThreadgroup = MTLSizeMake(shapeContent(src.shape(), axis()), 1, 1);
-
-    [commandEncoder dispatchThreads:threads threadsPerThreadgroup:threadsPerThreadgroup];
-
-    [commandEncoder endEncoding];
-
-    if (![MTL4DNN_CONTEXT commit])
-    {
-        CV_LOG_ERROR(NULL, __func__ << ": commit failed");
-        return false;
-    }
-#endif
     id<MTLCommandQueue> commandQueue = [MPS4DNN_CONTEXT commandQueue];
     if (commandQueue == nil)
     {
