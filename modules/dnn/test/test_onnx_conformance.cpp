@@ -1228,7 +1228,7 @@ TEST_P(Test_ONNX_conformance, Layer_Test)
     }
 #endif
 #ifdef HAVE_METAL
-    else if (backend == DNN_BACKEND_METAL)
+    else if (backend == DNN_BACKEND_MPS)
     {
         if (metal_deny_list.find(name)!= metal_deny_list.end())
         {

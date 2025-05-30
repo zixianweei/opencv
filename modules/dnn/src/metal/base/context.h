@@ -9,49 +9,43 @@
 
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
+#import <MetalPerformanceShaders/MetalPerformanceShaders.h>
+#import <MetalPerformanceShadersGraph/MetalPerformanceShadersGraph.h>
 
 OCV_DNN_METAL_OBJC_PRIVATE_GUARD();
 
-typedef NSMutableDictionary<NSString *, id<MTLComputePipelineState>>* ComputePipelineStateDictionary;
-
-@interface MTL4DNNContext : NSObject
+@interface MPS4DNNContext : NSObject
 @property(strong, nonatomic) id<MTLDevice> device;
 @property(strong, nonatomic) id<MTLCommandQueue> commandQueue;
-@property(strong, nonatomic) id<MTLLibrary> library;
-@property(strong, nonatomic) ComputePipelineStateDictionary cachedCPS;
-@property(strong, nonatomic) id<MTLCommandBuffer> commandBuffer;
 
 - (instancetype)init;
 - (void)dealloc;
-- (id<MTLComputePipelineState>)findComputePipelineState:(NSString *)kernelName;
-- (id<MTLComputeCommandEncoder>)makeEncoder;
-- (BOOL)commit;
 @end
 
 namespace cv { namespace dnn { namespace metal {
 
-class ContextOwner
+class MPS4DNNContextOwner
 {
 public:
-    static ContextOwner& getInstance();
+    static MPS4DNNContextOwner& getInstance();
 
-    ~ContextOwner();
-    ContextOwner(const ContextOwner&) = delete;
-    ContextOwner& operator=(const ContextOwner&) = delete;
-    ContextOwner(ContextOwner&&) noexcept = delete;
-    ContextOwner& operator=(ContextOwner&&) noexcept = delete;
+    ~MPS4DNNContextOwner();
+    MPS4DNNContextOwner(const MPS4DNNContextOwner&) = delete;
+    MPS4DNNContextOwner& operator=(const MPS4DNNContextOwner&) = delete;
+    MPS4DNNContextOwner(MPS4DNNContextOwner&&) noexcept = delete;
+    MPS4DNNContextOwner& operator=(MPS4DNNContextOwner&&) noexcept = delete;
 
-    MTL4DNNContext *context() { return context_; }
+    MPS4DNNContext *context() { return context_; }
 
 private:
-    ContextOwner();
+    MPS4DNNContextOwner();
 
-    MTL4DNNContext* context_{nullptr};
+    MPS4DNNContext* context_{nullptr};
 };
 
 }}} // namespace cv::dnn::metal
 
-#define MTL4DNN_CONTEXT cv::dnn::metal::ContextOwner::getInstance().context()
+#define MPS4DNN_CONTEXT cv::dnn::metal::MPS4DNNContextOwner::getInstance().context()
 
 #endif  // HAVE_METAL
 

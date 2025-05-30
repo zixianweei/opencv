@@ -186,8 +186,8 @@ void Net::Impl::setUpNet(const std::vector<LayerPin>& blobsToKeep_)
             preferableBackend = DNN_BACKEND_OPENCV;
             preferableTarget = DNN_TARGET_CPU;
         }
-        
-        if (preferableBackend == DNN_BACKEND_METAL && !haveMetal())
+
+        if (preferableBackend == DNN_BACKEND_MPS && !haveMetal())
         {
 #ifdef HAVE_METAL
             CV_LOG_WARNING(NULL, "unable to use Metal backend; switching to CPU");
@@ -850,7 +850,7 @@ void Net::Impl::forwardLayer(LayerData& ld)
                 }
             }
 #endif
-            else if (preferableBackend == DNN_BACKEND_METAL)
+            else if (preferableBackend == DNN_BACKEND_MPS)
             {
                 forwardMetal(ld.outputBlobsWrappers, node);
             }
@@ -1587,7 +1587,7 @@ string Net::Impl::dump(bool forceAllocation) const
     case DNN_BACKEND_WEBNN: backend = "WEBNN/"; break;
     case DNN_BACKEND_TIMVX: backend = "TIMVX/"; break;
     case DNN_BACKEND_CANN: backend = "CANN/"; break;
-    case DNN_BACKEND_METAL: backend = "METAL/"; break;
+    case DNN_BACKEND_MPS: backend = "METAL/"; break;
         // don't use default:
     }
     out << "digraph G {\n";

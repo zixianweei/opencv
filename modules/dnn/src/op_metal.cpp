@@ -33,7 +33,7 @@ void createTensors(const std::vector<Ptr<BackendWrapper>>& wrappers, std::vector
 MetalBackendNode::MetalBackendNode(const std::vector<Ptr<BackendWrapper>>& inputs_wrapper,
                                    const std::shared_ptr<metal::OpBase>& op,
                                    const std::vector<Ptr<BackendWrapper>>& outputs_wrapper)
-                                   : BackendNode(DNN_BACKEND_METAL)
+                                   : BackendNode(DNN_BACKEND_MPS)
 {
     operation_ = op;
 
@@ -54,7 +54,7 @@ bool MetalBackendNode::forward()
 }
 
 MetalBackendWrapper::MetalBackendWrapper(Mat& m)
-: BackendWrapper(DNN_BACKEND_METAL, DNN_TARGET_METAL)
+: BackendWrapper(DNN_BACKEND_MPS, DNN_TARGET_METAL)
 {
     CV_Assert(m.isContinuous());
     host_ = m;
@@ -64,7 +64,7 @@ MetalBackendWrapper::MetalBackendWrapper(Mat& m)
 }
 
 MetalBackendWrapper::MetalBackendWrapper(const Ptr<BackendWrapper>& baseBuffer, Mat& m)
-    : BackendWrapper(DNN_BACKEND_METAL, DNN_TARGET_METAL)
+    : BackendWrapper(DNN_BACKEND_MPS, DNN_TARGET_METAL)
 {
     Ptr<MetalBackendWrapper> base = baseBuffer.dynamicCast<MetalBackendWrapper>();
     CV_Assert(!base.empty());
@@ -115,7 +115,7 @@ Mat& MetalBackendWrapper::getMat()
 void Net::Impl::initMetalBackend()
 {
     CV_TRACE_FUNCTION();
-    CV_Assert(preferableBackend == DNN_BACKEND_METAL);
+    CV_Assert(preferableBackend == DNN_BACKEND_MPS);
 
     if (!haveMetal())
         return;
@@ -133,12 +133,12 @@ void Net::Impl::initMetalBackend()
 
         try
         {
-            layer_data.backendNodes[DNN_BACKEND_METAL] = layer->initMetal(layer_data.inputBlobsWrappers, layer_data.outputBlobsWrappers);
+            layer_data.backendNodes[DNN_BACKEND_MPS] = layer->initMetal(layer_data.inputBlobsWrappers, layer_data.outputBlobsWrappers);
         }
         catch (const cv::Exception& e)
         {
             CV_LOG_ERROR(NULL, "initMetal failed, fallback to CPU implementation. " << e.what());
-            layer_data.backendNodes[DNN_BACKEND_METAL] = Ptr<BackendNode>();
+            layer_data.backendNodes[DNN_BACKEND_MPS] = Ptr<BackendNode>();
         }
     }
 }

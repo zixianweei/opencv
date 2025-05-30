@@ -13,7 +13,7 @@
     self = [super init];
     if (self)
     {
-        _buffer = [[MTL4DNN_CONTEXT device] newBufferWithBytes:data length:size options:MTLResourceStorageModeShared];
+        _buffer = [[MPS4DNN_CONTEXT device] newBufferWithBytes:data length:size options:MTLResourceStorageModeShared];
     }
     return self;
 }

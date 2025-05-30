@@ -39,6 +39,15 @@ int elementSize(Format format)
     return 0;
 }
 
+MPSShape* makeMPSShape(const std::vector<int>& shape)
+{
+    NSMutableArray<NSNumber *> *mps_shape = [[NSMutableArray alloc] init];
+    for (const int &c : shape) {
+        [mps_shape addObject:[NSNumber numberWithInteger:c]];
+    }
+    return mps_shape;
+}
+
 }}} // namespace cv::dnn::metal
 
 #endif // HAVE_METAL

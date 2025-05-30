@@ -26,10 +26,6 @@ using namespace cv::dnn::cuda4dnn;
 // Metal backend
 #include "../op_metal.hpp"
 
-#ifdef HAVE_METAL
-#include "../metal/exec/op_matmul.h"
-#endif
-
 namespace cv { namespace dnn {
 
 class MatMulLayerImpl CV_FINAL : public MatMulLayer {
@@ -54,8 +50,7 @@ class MatMulLayerImpl CV_FINAL : public MatMulLayer {
                backendId == DNN_BACKEND_INFERENCE_ENGINE_NGRAPH ||
                (backendId == DNN_BACKEND_VKCOM && haveVulkan() && !trans_a && !trans_b) ||
                backendId == DNN_BACKEND_CUDA ||
-               backendId == DNN_BACKEND_CANN/* ||
-               (backendId == DNN_BACKEND_METAL && haveMetal())*/;
+               backendId == DNN_BACKEND_CANN;
     }
 
     virtual bool getMemoryShapes(const std::vector<MatShape> &inputs,
@@ -470,14 +465,6 @@ class MatMulLayerImpl CV_FINAL : public MatMulLayer {
         return Ptr<BackendNode>(new CannBackendNode(op));
     }
 #endif // HAVE_CANN
-
-#ifdef HAVE_METAL
-    virtual Ptr<BackendNode> initMetal(const std::vector<Ptr<BackendWrapper>>& inputs,
-                                       const std::vector<Ptr<BackendWrapper>>& outputs) override {
-        std::shared_ptr<metal::OpMatMul> op = std::make_shared<metal::OpMatMul>();
-        return Ptr<BackendNode>(new MetalBackendNode(inputs, op, outputs));
-    }
-#endif
 
  private:
     bool trans_a;

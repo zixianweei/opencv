@@ -8,36 +8,7 @@
 #include "../base/buffer.h"
 #include "../base/utility.h"
 
-#include "op_types.h"
-
 #ifdef HAVE_METAL
-
-namespace {
-
-std::string op_softmax_kernel_name(int /* axis, unused */, bool log_softmax)
-{
-    return log_softmax ? "kernel_log_softmax" : "kernel_softmax";
-}
-
-id<MTLBuffer> op_softmax_make_attribute(const cv::dnn::metal::Tensor& src, const cv::dnn::metal::Tensor& dst, int axis, bool log_softmax)
-{
-    axis = cv::dnn::normalize_axis(axis, src.dims());
-
-    cv::dnn::metal::OpSoftmaxAttribute attr;
-    attr.o_size = cv::dnn::metal::shapeCount(src.shape(), 0, axis);
-    attr.i_size = cv::dnn::metal::shapeCount(src.shape(), axis + 1);
-    attr.r_size = cv::dnn::metal::shapeContent(src.shape(), axis);
-
-    id<MTLBuffer> buffer = [[MTL4DNN_CONTEXT device] newBufferWithBytes:&attr length:sizeof(attr) options:MTLResourceStorageModeShared];
-    if (buffer == nil)
-    {
-        CV_LOG_ERROR(NULL, __func__ << ": failed to allocate attribute buffer.");
-        return nil;
-    }
-    return buffer;
-}
-
-} // anonymous namespace
 
 namespace cv { namespace dnn {namespace metal {
 
@@ -49,6 +20,7 @@ bool OpSoftmax::forward(std::vector<Tensor>& inputs, std::vector<Tensor>& output
     Tensor& src = inputs[0];
     Tensor& dst = outputs[0];
 
+#if 0
     id<MTLComputeCommandEncoder> commandEncoder = [MTL4DNN_CONTEXT makeEncoder];
     if (commandEncoder == nil)
     {
@@ -84,6 +56,79 @@ bool OpSoftmax::forward(std::vector<Tensor>& inputs, std::vector<Tensor>& output
     {
         CV_LOG_ERROR(NULL, __func__ << ": commit failed");
         return false;
+    }
+#endif
+    id<MTLCommandQueue> commandQueue = [MPS4DNN_CONTEXT commandQueue];
+    if (commandQueue == nil)
+    {
+        CV_LOG_ERROR(NULL, __func__ << ": command queue is nil.");
+        return false;
+    }
+
+    @autoreleasepool
+    {
+        MPSGraph* graph = [[MPSGraph alloc] init];
+        if (graph == nil)
+        {
+            CV_LOG_ERROR(NULL, __func__ << ": mps graph is nil.");
+            return false;
+        }
+
+        MPSGraphTensor* inputTensor = [graph placeholderWithShape:makeMPSShape(src.shape()) dataType:MPSDataTypeFloat32 name:nil];
+        if (inputTensor == nil)
+        {
+            CV_LOG_ERROR(NULL, __func__ << ": input tensor is nil.");
+            return false;
+        }
+
+        MPSGraphTensor* outputTensor = nil;
+        if (logSoftmax())
+        {
+            outputTensor = [graph softMaxWithTensor:inputTensor axis:axis() name:nil];
+            outputTensor = [graph logarithmWithTensor:outputTensor name:nil];
+        }
+        else
+        {
+            outputTensor = [graph softMaxWithTensor:inputTensor axis:axis() name:nil];
+        }
+        if (outputTensor == nil)
+        {
+            CV_LOG_ERROR(NULL, __func__ << ": output tensor is nil.");
+            return false;
+        }
+
+        MPSGraphTensorData* inputData = [[MPSGraphTensorData alloc] initWithMTLBuffer:src.buffer()->rawBuffer() shape:makeMPSShape(src.shape()) dataType:MPSDataTypeFloat32];
+        if (inputData == nil)
+        {
+            CV_LOG_ERROR(NULL, __func__ << ": input data is nil.");
+            return false;
+        }
+
+        MPSGraphTensorData* outputData = [[MPSGraphTensorData alloc] initWithMTLBuffer:dst.buffer()->rawBuffer() shape:makeMPSShape(dst.shape()) dataType:MPSDataTypeFloat32];
+        if (outputData == nil)
+        {
+            CV_LOG_ERROR(NULL, __func__ << ": output data is nil.");
+            return false;
+        }
+
+        MPSGraphTensorDataDictionary* feeds = @{inputTensor : inputData};
+        MPSGraphTensorDataDictionary* results = @{outputTensor : outputData};
+        MPSGraphExecutionDescriptor* descriptor = [[MPSGraphExecutionDescriptor alloc] init];
+        MPSCommandBuffer* commandBuffer = [MPSCommandBuffer commandBufferFromCommandQueue:commandQueue];
+        if (commandBuffer == nil)
+        {
+            CV_LOG_ERROR(NULL, __func__ << ": command buffer is nil.");
+            return false;
+        }
+
+        [graph encodeToCommandBuffer:commandBuffer
+                               feeds:feeds
+                    targetOperations:nil
+                   resultsDictionary:results
+                 executionDescriptor:descriptor];
+
+        [commandBuffer commit];
+        [commandBuffer waitUntilCompleted];
     }
 
     return true;

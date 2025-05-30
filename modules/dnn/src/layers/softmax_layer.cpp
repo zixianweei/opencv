@@ -123,7 +123,7 @@ public:
                backendId == DNN_BACKEND_CUDA ||
                (backendId == DNN_BACKEND_HALIDE && haveHalide() && axisRaw == 1) ||
                backendId == DNN_BACKEND_CANN ||
-               (backendId == DNN_BACKEND_METAL && haveMetal());
+               (backendId == DNN_BACKEND_MPS && haveMetal());
     }
 
 #ifdef HAVE_OPENCL

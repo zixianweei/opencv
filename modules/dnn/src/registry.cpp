@@ -159,7 +159,7 @@ private:
         backends.push_back(std::make_pair(DNN_BACKEND_CANN, DNN_TARGET_NPU));
 #endif
 #ifdef HAVE_METAL
-        backends.push_back(std::make_pair(DNN_BACKEND_METAL, DNN_TARGET_METAL));
+        backends.push_back(std::make_pair(DNN_BACKEND_MPS, DNN_TARGET_METAL));
 #endif
     }
 
