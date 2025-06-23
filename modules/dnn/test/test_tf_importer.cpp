@@ -797,6 +797,8 @@ TEST_P(Test_TensorFlow_layers, reshape_nchw)
 
 TEST_P(Test_TensorFlow_layers, reshape_conv)
 {
+    if (backend == DNN_BACKEND_MPS)
+        applyTestTag(CV_TEST_TAG_DNN_SKIP_METAL);
     runTensorFlowNet("reshape_conv");
 }
 
@@ -1525,6 +1527,8 @@ TEST_P(Test_TensorFlow_layers, split_equals)
     if (backend == DNN_BACKEND_INFERENCE_ENGINE_NGRAPH)
         applyTestTag(CV_TEST_TAG_DNN_SKIP_IE_NGRAPH);
 #endif
+    if (backend == DNN_BACKEND_MPS)
+        applyTestTag(CV_TEST_TAG_DNN_SKIP_METAL);
     runTensorFlowNet("split_equals");
 }
 

@@ -331,6 +331,9 @@ TEST_P(Test_Caffe_layers, Concat)
 #endif
 
 #endif
+    if (backend == DNN_BACKEND_MPS)
+        applyTestTag(CV_TEST_TAG_DNN_SKIP_METAL);
+
     testLayerUsingCaffeModels("layer_concat");
     testLayerUsingCaffeModels("layer_concat_optim", true, false);
     testLayerUsingCaffeModels("layer_concat_shared_input", true, false);

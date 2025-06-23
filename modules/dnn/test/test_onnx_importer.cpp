@@ -1077,6 +1077,8 @@ TEST_P(Test_ONNX_layers, Constant)
             && getInferenceEngineVPUType() == CV_DNN_INFERENCE_ENGINE_VPU_TYPE_MYRIAD_X)
        applyTestTag(CV_TEST_TAG_DNN_SKIP_IE_MYRIAD_X, CV_TEST_TAG_DNN_SKIP_IE_NN_BUILDER, CV_TEST_TAG_DNN_SKIP_IE_VERSION);
 #endif
+    if (backend == DNN_BACKEND_MPS)
+        applyTestTag(CV_TEST_TAG_DNN_SKIP_METAL);
     testONNXModels("constant");
 }
 

@@ -13,6 +13,7 @@ bool isAvailable();
 
 #include "exec/op_base.h"
 #include "exec/op_softmax.h"
+#include "exec/op_conv.h"
 
 #endif // HAVE_METAL
 

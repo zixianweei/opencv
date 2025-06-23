@@ -358,6 +358,10 @@ public:
             return true;
         }
 #endif // HAVE_CANN
+#ifdef HAVE_METAL
+        if (backendId == DNN_BACKEND_MPS)
+            return ksize == 2;
+#endif // HAVE_METAL
         return false;
     }
 
@@ -1395,6 +1399,36 @@ public:
             preferableTarget, std::move(context->stream), std::move(context->cudnn_handle), config, filtersMat, biasMat);
     }
 #endif
+
+#ifdef HAVE_METAL
+    Ptr<BackendNode> initMetal(const std::vector<Ptr<BackendWrapper>>& inputs, const std::vector<Ptr<BackendWrapper>>& outputs) CV_OVERRIDE
+    {
+        CV_Assert(inputs.size() == 1U && outputs.size() == 1U);
+        Ptr<MetalBackendWrapper> inputWrapper = inputs[0].dynamicCast<MetalBackendWrapper>();
+        Ptr<MetalBackendWrapper> outputWrapper = outputs[0].dynamicCast<MetalBackendWrapper>();
+        CV_Assert(inputWrapper != nullptr && outputWrapper != nullptr);
+
+        MatShape inputShape = shape(inputWrapper->getMat());
+        MatShape outputShape = shape(outputWrapper->getMat());
+        CV_Assert(inputShape.size() == 4 && inputShape.size() == outputShape.size());
+
+        int inputGroupChannels = blobs[0].size[1];
+        int nGroups = inputShape[1] / inputGroupChannels;
+        CV_Assert(outputShape[1] % nGroups == 0);
+
+        Mat weightVK;
+        if (fusedWeights)
+        {
+            weightsMat.copyTo(weightVK); // to handle the case of isContinuous() == false
+            weightVK = weightVK.reshape(1, blobs[0].dims, blobs[0].size);
+        }
+        else
+            weightVK = blobs[0];
+
+        auto op = std::make_shared<metal::OpConv>(weightVK, nGroups, stride.width, stride.height, pads_begin[1], pads_end[1], pads_begin[0], pads_end[0], dilation.width, dilation.height);
+        return Ptr<BackendNode>(new MetalBackendNode(inputs, op, outputs));
+    }
+#endif // HAVE_METAL
 
     virtual bool tryQuantize(const std::vector<std::vector<float> > &scales,
                              const std::vector<std::vector<int> > &zeropoints, LayerParams& params) CV_OVERRIDE
