@@ -131,7 +131,7 @@ bool setParallelForBackend(const std::string& backendName, bool propagateNumThre
     if (g_initializedParallelForAPI)
     {
         // ... already initialized
-        if (getParallelBackendName() == backendName_u)
+        if (getParallelBackendName() == backendName_u && getCurrentParallelForAPI() != nullptr)
         {
             CV_LOG_INFO(NULL, "core(parallel): backend is already activated: " << (backendName.empty() ? "builtin(legacy)" : backendName));
             return true;
